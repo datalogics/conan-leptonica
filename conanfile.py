@@ -23,13 +23,15 @@ class LeptonicaConan(ConanFile):
                "with_gif": [True, False],
                "with_jpeg": [True, False],
                "with_png": [True, False],
-               "with_tiff": [True, False]
+               "with_tiff": [True, False],
+               "with_openjpeg": [True, False]
               }
     default_options = ("shared=False",
                        "with_gif=False",
                        "with_jpeg=True",
                        "with_png=True",
-                       "with_tiff=True")
+                       "with_tiff=True",
+                       "with_openjpeg=False")
 
     source_subfolder = "source_subfolder"
 
@@ -43,6 +45,8 @@ class LeptonicaConan(ConanFile):
             self.requires.add("libpng/[>=1.6.34]@bincrafters/stable")
         if self.options.with_tiff:
             self.requires.add("libtiff/[>=4.0.8]@bincrafters/stable")
+        if self.options.with_openjpeg:
+            self.requires.add("openjpeg/[>=2.3.0]@bincrafters/stable")
 
     def source(self):
         source_url = "https://github.com/DanBloomberg/leptonica"
@@ -56,19 +60,41 @@ class LeptonicaConan(ConanFile):
                     os.path.join(self.source_subfolder, "CMakeLists.txt"))
 
     def build(self):
-        cmake = CMake(self)
-        cmake.definitions['STATIC'] = not self.options.shared
-        cmake.definitions['BUILD_PROG'] = False
-        # avoid finding system libs
-        cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_GIF'] = not self.options.with_gif
-        cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_PNG'] = not self.options.with_png
-        cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_TIFF'] = not self.options.with_tiff
-        cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_JPEG'] = not self.options.with_jpeg
-        # disable pkgconfig to avoid finding JP2K and WEBP
-        cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_PkgConfig'] = True
-        cmake.configure(source_folder=self.source_subfolder)
-        cmake.build()
-        cmake.install()
+        if self.options.with_openjpeg:
+            # patch prefix for openjpeg pc file.
+            # note the difference between pc name and package name
+            shutil.copy(os.path.join(self.deps_cpp_info['openjpeg'].rootpath, 'lib', 'pkgconfig', 'libopenjp2.pc'), 'libopenjp2.pc')
+            tools.replace_prefix_in_pc_file("libopenjp2.pc", self.deps_cpp_info['openjpeg'].rootpath)
+            # leptonica finds openjpeg.h in a wrong directory. just patch a pc file
+            tools.replace_in_file("libopenjp2.pc",
+                                  'includedir=${prefix}/include/openjpeg-2.3',
+                                  'includedir=${prefix}/include')
+
+        with tools.environment_append({'PKG_CONFIG_PATH': self.build_folder}):
+            cmake = CMake(self)
+            cmake.definitions['STATIC'] = not self.options.shared
+            cmake.definitions['BUILD_PROG'] = False
+            # avoid finding system libs
+            cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_GIF'] = not self.options.with_gif
+            cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_PNG'] = not self.options.with_png
+            cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_TIFF'] = not self.options.with_tiff
+            cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_JPEG'] = not self.options.with_jpeg
+
+            # avoid finding system libs by pkg-config by removing finders because they have no off switch
+            if self.options.with_openjpeg:
+                # check_include_files need to know where openjp2k resides
+                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                                      "pkg_check_modules(JP2K libopenjp2)",
+                                      'pkg_check_modules(JP2K libopenjp2)\n'
+                                      'list(APPEND CMAKE_REQUIRED_INCLUDES "${JP2K_INCLUDE_DIRS}")')
+            else:
+                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                                      "pkg_check_modules(JP2K libopenjp2)",
+                                      "")
+
+            cmake.configure(source_folder=self.source_subfolder)
+            cmake.build()
+            cmake.install()
 
     def package(self):
         self.copy(pattern="leptonica-license.txt", dst="license", src=self.source_subfolder)
