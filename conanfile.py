@@ -97,7 +97,7 @@ class LeptonicaConan(ConanFile):
             cmake.install()
 
     def package(self):
-        self.copy(pattern="leptonica-license.txt", dst="license", src=self.source_subfolder)
+        self.copy(pattern="leptonica-license.txt", dst="licenses", src=self.source_subfolder)
         #self.copy(pattern="*.dll", dst="bin", keep_path=False)
         #self.copy(pattern="*.lib", dst="lib", keep_path=False)
 
