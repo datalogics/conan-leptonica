@@ -5,6 +5,7 @@ set -x
 
 brew update || brew update
 brew install cmake || true
+brew install pkg-config || true
 
 
 pip install conan --upgrade
