@@ -24,14 +24,16 @@ class LeptonicaConan(ConanFile):
                "with_jpeg": [True, False],
                "with_png": [True, False],
                "with_tiff": [True, False],
-               "with_openjpeg": [True, False]
+               "with_openjpeg": [True, False],
+               "with_webp": [True, False],
               }
     default_options = ("shared=False",
                        "with_gif=False",
                        "with_jpeg=True",
                        "with_png=True",
                        "with_tiff=True",
-                       "with_openjpeg=False")
+                       "with_openjpeg=False",
+                       "with_webp=False")
 
     source_subfolder = "source_subfolder"
 
@@ -47,6 +49,8 @@ class LeptonicaConan(ConanFile):
             self.requires.add("libtiff/[>=4.0.8]@bincrafters/stable")
         if self.options.with_openjpeg:
             self.requires.add("openjpeg/[>=2.3.0]@bincrafters/stable")
+        if self.options.with_webp:
+            self.requires.add("libwebp/[>=0.6.1]@bincrafters/stable")
 
     def source(self):
         source_url = "https://github.com/DanBloomberg/leptonica"
@@ -90,6 +94,15 @@ class LeptonicaConan(ConanFile):
             else:
                 tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
                                       "pkg_check_modules(JP2K libopenjp2)",
+                                      "")
+            # webp does not provide .pc file but provide cmake configs. so use find_package instead
+            if self.options.with_webp:
+                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                                      "pkg_check_modules(WEBP libwebp)",
+                                      "find_package(WEBP REQUIRED NAMES WEBP WebP NO_SYSTEM_ENVIRONMENT_PATH)")
+            else:
+                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                                      "pkg_check_modules(WEBP libwebp)",
                                       "")
 
             cmake.configure(source_folder=self.source_subfolder)
