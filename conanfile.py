@@ -28,7 +28,7 @@ class LeptonicaConan(ConanFile):
                "with_webp": [True, False],
               }
     default_options = ("shared=False",
-                       "with_gif=False",
+                       "with_gif=True",
                        "with_jpeg=True",
                        "with_png=True",
                        "with_tiff=True",
@@ -38,19 +38,19 @@ class LeptonicaConan(ConanFile):
     source_subfolder = "source_subfolder"
 
     def requirements(self):
-        self.requires.add("zlib/[~=1.2]@conan/stable")
+        self.requires.add("zlib/1.2.11@conan/stable")
         if self.options.with_gif:
-            self.requires.add("giflib/[>=5.1.3]@bincrafters/testing")
+            self.requires.add("giflib/5.1.3@bincrafters/stable")
         if self.options.with_jpeg:
             self.requires.add("libjpeg/9b@bincrafters/stable")
         if self.options.with_png:
-            self.requires.add("libpng/[>=1.6.34]@bincrafters/stable")
+            self.requires.add("libpng/1.6.34@bincrafters/stable")
         if self.options.with_tiff:
-            self.requires.add("libtiff/[>=4.0.8]@bincrafters/stable")
+            self.requires.add("libtiff/4.0.8@bincrafters/stable")
         if self.options.with_openjpeg:
-            self.requires.add("openjpeg/[>=2.3.0]@bincrafters/stable")
+            self.requires.add("openjpeg/2.3.0@bincrafters/stable")
         if self.options.with_webp:
-            self.requires.add("libwebp/[>=0.6.1]@bincrafters/stable")
+            self.requires.add("libwebp/0.6.1@bincrafters/stable")
 
     def source(self):
         source_url = "https://github.com/DanBloomberg/leptonica"
