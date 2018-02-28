@@ -10,7 +10,7 @@ class LeptonicaConan(ConanFile):
     name = "leptonica"
     version = "1.75.1"
     url = "https://github.com/bincrafters/conan-leptonica"
-    website = "http://leptonica.org"
+    homepage = "http://leptonica.org"
     description = "Library containing software that is broadly useful for image processing and image analysis applications."
     license = "BSD 2-Clause"
 
