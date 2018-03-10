@@ -54,6 +54,10 @@ class LeptonicaConan(ConanFile):
         if self.options.with_webp:
             self.requires.add("libwebp/0.6.1@bincrafters/stable")
 
+    def config_options(self):
+        if self.settings.os == "Windows":
+            self.options.remove("fPIC")
+
     def source(self):
         source_url = "https://github.com/DanBloomberg/leptonica"
         tools.get("{0}/archive/{1}.tar.gz".format(source_url, self.version))
