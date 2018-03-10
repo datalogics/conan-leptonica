@@ -109,6 +109,17 @@ class LeptonicaConan(ConanFile):
             cmake.build()
             cmake.install()
 
+            # Fix pc file: cmake does not fill libs.private
+            if self.settings.os != 'Windows':
+                libs_private = []
+                for dep in self.deps_cpp_info.deps:
+                    libs_private.extend(['-L'+path for path in self.deps_cpp_info[dep].lib_paths])
+                    libs_private.extend(['-l'+lib for lib in self.deps_cpp_info[dep].libs])
+                path = os.path.join(self.package_folder, 'lib', 'pkgconfig', 'lept.pc')
+                tools.replace_in_file(path,
+                                     'Libs.private:',
+                                     'Libs.private: ' + ' '.join(libs_private))
+
     def package(self):
         self.copy(pattern="leptonica-license.txt", dst="licenses", src=self.source_subfolder)
         #self.copy(pattern="*.dll", dst="bin", keep_path=False)
