@@ -26,6 +26,7 @@ class LeptonicaConan(ConanFile):
                "with_tiff": [True, False],
                "with_openjpeg": [True, False],
                "with_webp": [True, False],
+               "fPIC": [True, False]
               }
     default_options = ("shared=False",
                        "with_gif=True",
@@ -33,7 +34,8 @@ class LeptonicaConan(ConanFile):
                        "with_png=True",
                        "with_tiff=True",
                        "with_openjpeg=False",
-                       "with_webp=False")
+                       "with_webp=False",
+                       "fPIC=True")
 
     source_subfolder = "source_subfolder"
 
@@ -78,6 +80,7 @@ class LeptonicaConan(ConanFile):
             cmake = CMake(self)
             cmake.definitions['STATIC'] = not self.options.shared
             cmake.definitions['BUILD_PROG'] = False
+            cmake.definitions["CMAKE_POSITION_INDEPENDENT_CODE"] = self.options.fPIC
             # avoid finding system libs
             cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_GIF'] = not self.options.with_gif
             cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_PNG'] = not self.options.with_png
