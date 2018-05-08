@@ -84,8 +84,6 @@ class LeptonicaConan(ConanFile):
             cmake = CMake(self)
             cmake.definitions['STATIC'] = not self.options.shared
             cmake.definitions['BUILD_PROG'] = False
-            if self.settings.os != "Windows":
-                cmake.definitions["CMAKE_POSITION_INDEPENDENT_CODE"] = self.options.fPIC
             # avoid finding system libs
             cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_GIF'] = not self.options.with_gif
             cmake.definitions['CMAKE_DISABLE_FIND_PACKAGE_PNG'] = not self.options.with_png
