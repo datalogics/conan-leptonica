@@ -8,7 +8,7 @@ import shutil
 
 class LeptonicaConan(ConanFile):
     name = "leptonica"
-    version = "1.76.0"
+    version = "1.75.1"
     url = "https://github.com/bincrafters/conan-leptonica"
     homepage = "http://leptonica.org"
     description = "Library containing software that is broadly useful for image processing and image analysis applications."
