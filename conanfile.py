@@ -153,7 +153,7 @@ class LeptonicaConan(ConanFile):
                     for dep in self.deps_cpp_info.deps:
                         from_str = self.deps_cpp_info[dep].rootpath
                         if self.settings.os == 'Windows':
-                            from_str = from_str.package_folder.replace('\\', '/')
+                            from_str = from_str.replace('\\', '/')
                         if tools.load(path).find(from_str) != -1:
                             repl_str = "${CONAN_%s_ROOT}" % dep.upper()
                             self.output.info("Replacing for %s: %s to %s" % (dep, from_str, repl_str))
