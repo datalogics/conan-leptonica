@@ -4,7 +4,6 @@
 from conans import ConanFile, CMake, tools
 import os
 import shutil
-from itertools import chain
 
 
 class LeptonicaConan(ConanFile):
@@ -109,6 +108,7 @@ class LeptonicaConan(ConanFile):
             cmake.configure(source_folder=self._source_subfolder)
             cmake.build()
             cmake.install()
+            cmake.patch_config_paths()
 
         self._fix_absolute_paths(cmake)
 
@@ -123,35 +123,6 @@ class LeptonicaConan(ConanFile):
             tools.replace_in_file(path,
                                  'Libs.private:',
                                  'Libs.private: ' + ' '.join(libs_private))
-
-        # the following has the same effect as cmake.patch_config_paths()
-        # Fix cmake config file with absolute path
-        path = os.path.join(self.package_folder, 'cmake', 'LeptonicaConfig.cmake')
-        tools.replace_in_file(path,
-                "# Provide the include directories to the caller",
-                'get_filename_component(PACKAGE_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)\n'
-                'get_filename_component(PACKAGE_PREFIX "${PACKAGE_PREFIX}" PATH)')
-        if self.settings.os == 'Windows':
-            from_str = self.package_folder.replace('\\', '/')
-        else:
-            from_str = self.package_folder
-        tools.replace_in_file(path, from_str, '${PACKAGE_PREFIX}')
-
-        # Fix import paths
-        allwalk = chain(os.walk(self.build_folder), os.walk(self.package_folder))
-        for root, _, files in allwalk:
-            for f in files:
-                if f.endswith(".cmake"):
-                    path = os.path.join(root, f)
-                    self.output.info("Patching paths in %s" % (path))
-                    for dep in self.deps_cpp_info.deps:
-                        from_str = self.deps_cpp_info[dep].rootpath
-                        if self.settings.os == 'Windows':
-                            from_str = from_str.replace('\\', '/')
-                        if tools.load(path).find(from_str) != -1:
-                            repl_str = "${CONAN_%s_ROOT}" % dep.upper()
-                            self.output.info("Replacing for %s: %s to %s" % (dep, from_str, repl_str))
-                            tools.replace_in_file(path, from_str, repl_str, strict=False)
 
     def package(self):
         self.copy(pattern="leptonica-license.txt", dst="licenses", src=self._source_subfolder)
