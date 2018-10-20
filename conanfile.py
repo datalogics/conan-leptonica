@@ -4,13 +4,13 @@
 from conans import ConanFile, CMake, tools
 import os
 import shutil
-from itertools import chain
 
 
 class LeptonicaConan(ConanFile):
     name = "leptonica"
     version = "1.76.0"
     url = "https://github.com/bincrafters/conan-leptonica"
+    author = "Bincrafters <bincrafters@gmail.com>"
     homepage = "http://leptonica.org"
     description = "Library containing software that is broadly useful for image processing and image analysis applications."
     license = "BSD 2-Clause"
@@ -29,16 +29,9 @@ class LeptonicaConan(ConanFile):
                "with_webp": [True, False],
                "fPIC": [True, False]
               }
-    default_options = ("shared=False",
-                       "with_gif=True",
-                       "with_jpeg=True",
-                       "with_png=True",
-                       "with_tiff=True",
-                       "with_openjpeg=False",
-                       "with_webp=False",
-                       "fPIC=True")
+    default_options = {'shared': False, 'with_gif': True, 'with_jpeg': True, 'with_png': True, 'with_tiff': True, 'with_openjpeg': False, 'with_webp': False, 'fPIC': True}
 
-    source_subfolder = "source_subfolder"
+    _source_subfolder = "source_subfolder"
 
     def requirements(self):
         self.requires.add("zlib/1.2.11@conan/stable")
@@ -64,11 +57,11 @@ class LeptonicaConan(ConanFile):
         tools.get("{0}/archive/{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
 
-        os.rename(extracted_dir, self.source_subfolder)
-        os.rename(os.path.join(self.source_subfolder, "CMakeLists.txt"),
-                  os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"))
+        os.rename(extracted_dir, self._source_subfolder)
+        os.rename(os.path.join(self._source_subfolder, "CMakeLists.txt"),
+                  os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"))
         shutil.copy("CMakeLists.txt",
-                    os.path.join(self.source_subfolder, "CMakeLists.txt"))
+                    os.path.join(self._source_subfolder, "CMakeLists.txt"))
 
     def build(self):
         if self.options.with_openjpeg:
@@ -94,27 +87,28 @@ class LeptonicaConan(ConanFile):
             # avoid finding system libs by pkg-config by removing finders because they have no off switch
             if self.options.with_openjpeg:
                 # check_include_files need to know where openjp2k resides
-                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"),
                                       "pkg_check_modules(JP2K libopenjp2)",
                                       'pkg_check_modules(JP2K libopenjp2)\n'
                                       'list(APPEND CMAKE_REQUIRED_INCLUDES "${JP2K_INCLUDE_DIRS}")')
             else:
-                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"),
                                       "pkg_check_modules(JP2K libopenjp2)",
                                       "")
             # webp does not provide .pc file but provide cmake configs. so use find_package instead
             if self.options.with_webp:
-                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"),
                                       "pkg_check_modules(WEBP libwebp)",
                                       "find_package(WEBP REQUIRED NAMES WEBP WebP NO_SYSTEM_ENVIRONMENT_PATH)")
             else:
-                tools.replace_in_file(os.path.join(self.source_subfolder, "CMakeListsOriginal.txt"),
+                tools.replace_in_file(os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"),
                                       "pkg_check_modules(WEBP libwebp)",
                                       "")
 
-            cmake.configure(source_folder=self.source_subfolder)
+            cmake.configure(source_folder=self._source_subfolder)
             cmake.build()
             cmake.install()
+            cmake.patch_config_paths()
 
         self._fix_absolute_paths(cmake)
 
@@ -130,37 +124,8 @@ class LeptonicaConan(ConanFile):
                                  'Libs.private:',
                                  'Libs.private: ' + ' '.join(libs_private))
 
-        # the following has the same effect as cmake.patch_config_paths()
-        # Fix cmake config file with absolute path
-        path = os.path.join(self.package_folder, 'cmake', 'LeptonicaConfig.cmake')
-        tools.replace_in_file(path,
-                "# Provide the include directories to the caller",
-                'get_filename_component(PACKAGE_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)\n'
-                'get_filename_component(PACKAGE_PREFIX "${PACKAGE_PREFIX}" PATH)')
-        if self.settings.os == 'Windows':
-            from_str = self.package_folder.replace('\\', '/')
-        else:
-            from_str = self.package_folder
-        tools.replace_in_file(path, from_str, '${PACKAGE_PREFIX}')
-
-        # Fix import paths
-        allwalk = chain(os.walk(self.build_folder), os.walk(self.package_folder))
-        for root, _, files in allwalk:
-            for f in files:
-                if f.endswith(".cmake"):
-                    path = os.path.join(root, f)
-                    self.output.info("Patching paths in %s" % (path))
-                    for dep in self.deps_cpp_info.deps:
-                        from_str = self.deps_cpp_info[dep].rootpath
-                        if self.settings.os == 'Windows':
-                            from_str = from_str.replace('\\', '/')
-                        if tools.load(path).find(from_str) != -1:
-                            repl_str = "${CONAN_%s_ROOT}" % dep.upper()
-                            self.output.info("Replacing for %s: %s to %s" % (dep, from_str, repl_str))
-                            tools.replace_in_file(path, from_str, repl_str, strict=False)
-
     def package(self):
-        self.copy(pattern="leptonica-license.txt", dst="licenses", src=self.source_subfolder)
+        self.copy(pattern="leptonica-license.txt", dst="licenses", src=self._source_subfolder)
         #self.copy(pattern="*.dll", dst="bin", keep_path=False)
         #self.copy(pattern="*.lib", dst="lib", keep_path=False)
 
