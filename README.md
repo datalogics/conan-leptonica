@@ -2,7 +2,7 @@
 
 | Bintray | Windows | Linux & macOS |
 |:--------:|:---------:|:-----------------:|
-|[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/leptonica%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/leptonica%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-leptonica?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-leptonica)|[![Build Status](https://travis-ci.org/bincrafters/conan-leptonica.svg)](https://travis-ci.org/bincrafters/conan-leptonica)|
+|[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/leptonica%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/leptonica%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-leptonica?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-leptonica)|[![Build Status](https://travis-ci.com/bincrafters/conan-leptonica.svg)](https://travis-ci.com/bincrafters/conan-leptonica)|
 
 ## Conan.io Information
 
