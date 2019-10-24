@@ -34,15 +34,15 @@ class LeptonicaConan(ConanFile):
     _source_subfolder = "source_subfolder"
 
     def requirements(self):
-        self.requires.add("zlib-dl/1.2.11@datalogics/stable")
+        self.requires.add("zlib-dl/[~=1.2]@datalogics/stable")
         if self.options.with_gif:
             self.requires.add("giflib/5.1.4@bincrafters/stable")
         if self.options.with_jpeg:
             self.requires.add("jpeg-dl/9c@datalogics/stable")
         if self.options.with_png:
-            self.requires.add("png-dl/1.6.37@datalogics/stable")
+            self.requires.add("png-dl/[~=1.6]@datalogics/stable")
         if self.options.with_tiff:
-            self.requires.add("tiff-dl/4.0.10@datalogics/stable")
+            self.requires.add("tiff-dl/[~=4.0]@datalogics/stable")
         if self.options.with_openjpeg:
             self.requires.add("openjpeg/2.3.0@bincrafters/stable")
         if self.options.with_webp:
