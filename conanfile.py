@@ -38,11 +38,11 @@ class LeptonicaConan(ConanFile):
         if self.options.with_gif:
             self.requires.add("giflib/5.1.4@bincrafters/stable")
         if self.options.with_jpeg:
-            self.requires.add("jpeg-dl/9c@datalogics/stable")
+            self.requires.add("jpeg-dl/LATEST@datalogics/stable")
         if self.options.with_png:
-            self.requires.add("png-dl/[~=1.6]@datalogics/stable")
+            self.requires.add("libpng/APPROVED@datalogics/alias")
         if self.options.with_tiff:
-            self.requires.add("tiff-dl/[~=4.0]@datalogics/stable")
+            self.requires.add("tiff-dl/LATEST@datalogics/stable")
         if self.options.with_openjpeg:
             self.requires.add("openjpeg/2.3.0@bincrafters/stable")
         if self.options.with_webp:
@@ -62,6 +62,13 @@ class LeptonicaConan(ConanFile):
                   os.path.join(self._source_subfolder, "CMakeListsOriginal.txt"))
         shutil.copy("CMakeLists.txt",
                     os.path.join(self._source_subfolder, "CMakeLists.txt"))
+        if self.settings.os == 'Macos' and tools.Version(self.settings.os.version) < '10.13':
+            # Remove detection of fmemopen() on macOS < 10.13
+            # CheckFunctionExists will find it in the link library.
+            # There's no error because it's not including the header with the deprecation macros.
+            tools.replace_in_file(os.path.join(self._source_subfolder, 'cmake', 'Configure.cmake'),
+                                  'set(functions_list\n    fmemopen\n    fstatat\n)',
+                                  'set(functions_list\n    fstatat\n)')
 
     def build(self):
         if self.options.with_openjpeg:
