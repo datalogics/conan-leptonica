@@ -40,7 +40,7 @@ class LeptonicaConan(ConanFile):
         if self.options.with_jpeg:
             self.requires.add("jpeg-dl/LATEST@datalogics/stable")
         if self.options.with_png:
-            self.requires.add("png-dl/LATEST@datalogics/stable")
+            self.requires.add("libpng/APPROVED@datalogics/alias")
         if self.options.with_tiff:
             self.requires.add("tiff-dl/LATEST@datalogics/stable")
         if self.options.with_openjpeg:
